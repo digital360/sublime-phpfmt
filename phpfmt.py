@@ -11,10 +11,7 @@ from os.path import dirname, realpath
 
 dist_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, dist_dir)
-if int(sublime.version()) >= 3000:
-    from diff_match_patch.python3.diff_match_patch import diff_match_patch
-else:
-    from diff_match_patch.python2.diff_match_patch import diff_match_patch
+from diff_match_patch.python3.diff_match_patch import diff_match_patch
 
 def print_debug(*msg):
      if getSetting(sublime.active_window().active_view(), sublime.load_settings('phpfmt.sublime-settings'), "debug", False):
@@ -72,8 +69,7 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
 
     if not os.path.isfile(php_bin) and not php_bin == "php":
         print_debug("Can't find PHP binary file at "+php_bin)
-        if int(sublime.version()) >= 3000:
-            sublime.error_message("Can't find PHP binary file at "+php_bin)
+        sublime.error_message("Can't find PHP binary file at "+php_bin)
 
     # Look for oracle.sqlite
     if dirnm != "":
@@ -292,8 +288,7 @@ def dogeneratephpdoc(eself, eview):
 
     if not os.path.isfile(php_bin) and not php_bin == "php":
         print_debug("Can't find PHP binary file at "+php_bin)
-        if int(sublime.version()) >= 3000:
-            sublime.error_message("Can't find PHP binary file at "+php_bin)
+        sublime.error_message("Can't find PHP binary file at "+php_bin)
 
     print_debug("phpfmt:", uri)
     if enable_auto_align:
@@ -399,8 +394,7 @@ def doreordermethod(eself, eview):
 
     if not os.path.isfile(php_bin) and not php_bin == "php":
         print_debug("Can't find PHP binary file at "+php_bin)
-        if int(sublime.version()) >= 3000:
-            sublime.error_message("Can't find PHP binary file at "+php_bin)
+        sublime.error_message("Can't find PHP binary file at "+php_bin)
 
 
     print_debug("phpfmt:", uri)
@@ -501,8 +495,7 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
 
     if not os.path.isfile(php_bin) and not php_bin == "php":
         print_debug("Can't find PHP binary file at "+php_bin)
-        if int(sublime.version()) >= 3000:
-            sublime.error_message("Can't find PHP binary file at "+php_bin)
+        sublime.error_message("Can't find PHP binary file at "+php_bin)
 
     cmd_lint = [php_bin,"-l",uri];
     if os.name == 'nt':
@@ -538,12 +531,8 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
             p = subprocess.Popen(cmd_refactor, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         res, err = p.communicate()
         print_debug("err:\n", err.decode('utf-8'))
-        if int(sublime.version()) < 3000:
-            with open(uri_tmp, 'w+') as f:
-                f.write(res)
-        else:
-            with open(uri_tmp, 'bw+') as f:
-                f.write(res)
+        with open(uri_tmp, 'bw+') as f:
+            f.write(res)
         print_debug("Stored:", len(res), "bytes")
         shutil.move(uri_tmp, uri)
         sublime.set_timeout(revert_active_window, 50)
@@ -967,10 +956,7 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
         #sublime.set_timeout_async(self.long_command, 0)
         def askForDirectory(text):
             self.dirNm = text
-            if int(sublime.version()) >= 3000:
-                sublime.set_timeout_async(buildDB, 0)
-            else:
-                sublime.set_timeout(buildDB, 50)
+            sublime.set_timeout_async(buildDB, 0)
 
         view = self.view
         s = sublime.load_settings('phpfmt.sublime-settings')
@@ -999,10 +985,7 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
             print_debug("phpfmt (oracle file): "+oracleFname)
             print_debug("phpfmt (oracle dir): "+oracleDirNm)
             self.dirNm = oracleDirNm
-            if int(sublime.version()) >= 3000:
-                sublime.set_timeout_async(buildDB, 0)
-            else:
-                sublime.set_timeout(buildDB, 50)
+            sublime.set_timeout_async(buildDB, 0)
 
 class IndentWithSpacesCommand(sublime_plugin.TextCommand):
     def run(self, edit):
