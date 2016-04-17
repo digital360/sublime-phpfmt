@@ -465,80 +465,6 @@ def doreordermethod(eself, eview):
     else:
         print_debug("lint error: ", lint_out)
 
-
-def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
-    self = eself
-    view = eview
-    s = sublime.load_settings('phpfmt.sublime-settings')
-    debug = s.get("debug", False)
-    psr1 = s.get("psr1", False)
-    psr1_naming = s.get("psr1_naming", psr1)
-    psr2 = s.get("psr2", False)
-    indent_with_space = s.get("indent_with_space", False)
-    enable_auto_align = s.get("enable_auto_align", False)
-    visibility_order = s.get("visibility_order", False)
-    autoimport = s.get("autoimport", True)
-    short_array = s.get("short_array", False)
-    merge_else_if = s.get("merge_else_if", False)
-    php_bin = s.get("php_bin", "php")
-    refactor_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "refactor.php")
-    additional_extensions = s.get("additional_extensions", [])
-
-    uri = view.file_name()
-    dirnm, sfn = os.path.split(uri)
-    ext = os.path.splitext(uri)[1][1:]
-
-    if "php" != ext and not ext in additional_extensions:
-        print_debug("phpfmt: not a PHP file")
-        sublime.status_message("phpfmt: not a PHP file")
-        return False
-
-    if not os.path.isfile(php_bin) and not php_bin == "php":
-        print_debug("Can't find PHP binary file at "+php_bin)
-        sublime.error_message("Can't find PHP binary file at "+php_bin)
-
-    cmd_lint = [php_bin,"-l",uri];
-    if os.name == 'nt':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
-    else:
-        p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
-    lint_out, lint_err = p.communicate()
-
-    if(p.returncode==0):
-        cmd_refactor = [php_bin]
-
-        if not debug:
-            cmd_refactor.append("-ddisplay_errors=stderr")
-
-        cmd_refactor.append(refactor_path)
-
-        cmd_refactor.append("--from="+refactor_from)
-        cmd_refactor.append("--to="+refactor_to)
-
-        cmd_refactor.append(uri)
-
-        uri_tmp = uri + "~"
-
-        print_debug("cmd_refactor: ", cmd_refactor)
-
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_refactor, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmd_refactor, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
-        res, err = p.communicate()
-        print_debug("err:\n", err.decode('utf-8'))
-        with open(uri_tmp, 'bw+') as f:
-            f.write(res)
-        print_debug("Stored:", len(res), "bytes")
-        shutil.move(uri_tmp, uri)
-        sublime.set_timeout(revert_active_window, 50)
-    else:
-        print_debug("lint error: ", lint_out)
-
 def debugEnvironment(php_bin, formatter_path):
     ret = ""
     cmd_ver = [php_bin,"-v"];
@@ -878,36 +804,7 @@ class UpdatePhpBinCommand(sublime_plugin.TextCommand):
             s.set("php_bin", text)
 
         s = sublime.load_settings('phpfmt.sublime-settings')
-        self.view.window().show_input_panel('Refactor From:', s.get("php_bin", ""), execute, None, None)
-
-class RefactorCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        def execute(text):
-            self.token_to = text
-            dorefactor(self, self.view, self.token_from, self.token_to)
-
-        def askForToTokens(text):
-            self.token_from = text
-            self.view.window().show_input_panel('From '+text+' refactor To:', '', execute, None, None)
-
-        uri = self.view.file_name()
-        dirnm, sfn = os.path.split(uri)
-        ext = os.path.splitext(uri)[1][1:]
-
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        additional_extensions = s.get("additional_extensions", [])
-
-        if "php" != ext and not ext in additional_extensions:
-            print_debug("phpfmt: not a PHP file")
-            sublime.status_message("phpfmt: not a PHP file")
-            return False
-
-        s = ""
-        for region in self.view.sel():
-            if not region.empty():
-                s = self.view.substr(region)
-
-        self.view.window().show_input_panel('Refactor From:', s, askForToTokens, None, None)
+        self.view.window().show_input_panel('php binary path:', s.get("php_bin", ""), execute, None, None)
 
 class OrderMethodCommand(sublime_plugin.TextCommand):
     def run(self, edit):
