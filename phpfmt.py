@@ -22,6 +22,10 @@ def getSetting( view, settings, key, default ):
     return view.settings().get( local, settings.get( key, default ) )
 
 def dofmt(eself, eview, sgter = None, src = None, force = False):
+    if int(sublime.version()) < 3000:
+        print_debug("phpfmt: ST2 not supported")
+        return False
+
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
