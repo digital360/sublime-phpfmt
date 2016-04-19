@@ -21,6 +21,11 @@ Plugin runs with PHP 7.0 or newer installed in the machine running the plugin.
 - For field `"php_bin"` enter the path to the php
   Example: `"php_bin":"/usr/local/bin/php"`
 
+
+#### Windows Support
+
+[Windows support is offered by phpfmtForWindows package.](https://github.com/phpfmt/sublime-phpfmt-for-windows)
+
 ### Settings
 
 Prefer using the toggle options at command palette. However you might find yourself in need to setup where PHP is running, use this option below for the configuration file.
