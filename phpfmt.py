@@ -114,12 +114,7 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         oracleFname = None
 
     cmd_ver = [php_bin, '-v'];
-    if os.name == 'nt':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-    else:
-        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     res, err = p.communicate()
     print_debug("phpfmt (php_ver) cmd:\n", cmd_ver)
     print_debug("phpfmt (php_ver) out:\n", res.decode('utf-8'))
@@ -139,19 +134,9 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         cmd_lint = [php_bin,"-ddisplay_errors=1","-l"];
         if src is None:
             cmd_lint.append(uri)
-            if os.name == 'nt':
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
-            else:
-                p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+            p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         else:
-            if os.name == 'nt':
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-            else:
-                p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+            p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
             p.stdin.write(src.encode('utf-8'))
 
         lint_out, lint_err = p.communicate()
@@ -222,19 +207,9 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         print_debug("cmd_fmt: ", cmd_fmt)
 
         if src is None:
-            if os.name == 'nt':
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
-            else:
-                p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         else:
-            if os.name == 'nt':
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-            else:
-                p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+            p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
         if src is not None:
             p.stdin.write(src.encode('utf-8'))
@@ -303,12 +278,7 @@ def dogeneratephpdoc(eself, eview):
 
 
     cmd_lint = [php_bin,"-l",uri];
-    if os.name == 'nt':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
-    else:
-        p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+    p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
     lint_out, lint_err = p.communicate()
 
     if(p.returncode==0):
@@ -350,12 +320,7 @@ def dogeneratephpdoc(eself, eview):
 
         print_debug("cmd_fmt: ", cmd_fmt)
 
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+        p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         res, err = p.communicate()
         print_debug("err:\n", err.decode('utf-8'))
         sublime.set_timeout(revert_active_window, 50)
@@ -410,12 +375,7 @@ def doreordermethod(eself, eview):
 
 
     cmd_lint = [php_bin,"-l",uri];
-    if os.name == 'nt':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
-    else:
-        p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+    p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
     lint_out, lint_err = p.communicate()
 
     if(p.returncode==0):
@@ -457,12 +417,7 @@ def doreordermethod(eself, eview):
 
         print_debug("cmd_fmt: ", cmd_fmt)
 
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+        p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         res, err = p.communicate()
         print_debug("err:\n", err.decode('utf-8'))
         sublime.set_timeout(revert_active_window, 50)
@@ -472,12 +427,7 @@ def doreordermethod(eself, eview):
 def debugEnvironment(php_bin, formatter_path):
     ret = ""
     cmd_ver = [php_bin,"-v"];
-    if os.name == 'nt':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-    else:
-        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     res, err = p.communicate()
     ret += ("phpfmt (php version):\n"+res.decode('utf-8'))
     if err.decode('utf-8'):
@@ -485,12 +435,7 @@ def debugEnvironment(php_bin, formatter_path):
     ret += "\n"
 
     cmd_ver = [php_bin,"-m"];
-    if os.name == 'nt':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-    else:
-        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     res, err = p.communicate()
     if res.decode('utf-8').find("tokenizer") != -1:
         ret += ("phpfmt (php tokenizer) found\n")
@@ -501,12 +446,7 @@ def debugEnvironment(php_bin, formatter_path):
     ret += "\n"
 
     cmd_ver = [php_bin,formatter_path,"--version"];
-    if os.name == 'nt':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-    else:
-        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     res, err = p.communicate()
     ret += ("phpfmt (fmt.phar version):\n"+res.decode('utf-8'))
     if err.decode('utf-8'):
@@ -584,12 +524,7 @@ class AnalyseThisCommand(sublime_plugin.TextCommand):
         cmdOracle.append("introspect")
         cmdOracle.append(lookTerm)
         print_debug(cmdOracle+'asdasd')
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
+        p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
         res, err = p.communicate()
 
         print_debug("phpfmt (introspect): "+res.decode('utf-8'))
@@ -642,12 +577,7 @@ class CalltipCommand(sublime_plugin.TextCommand):
         cmdOracle.append(oraclePath)
         cmdOracle.append("calltip")
         cmdOracle.append(lookTerm)
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
+        p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
         res, err = p.communicate()
 
         output = res.decode('utf-8');
@@ -687,12 +617,7 @@ class TogglePassMenuCommand(sublime_plugin.TextCommand):
         cmd_passes = [php_bin,formatter_path,'--list-simple'];
         print_debug(cmd_passes)
 
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+        p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
         out, err = p.communicate()
 
@@ -732,12 +657,7 @@ class ToggleExcludeMenuCommand(sublime_plugin.TextCommand):
         cmd_passes = [php_bin,formatter_path,'--list-simple'];
         print_debug(cmd_passes)
 
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+        p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
         out, err = p.communicate()
 
@@ -842,12 +762,7 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
             cmdOracle.append(oraclePath)
             cmdOracle.append("flush")
             cmdOracle.append(self.dirNm)
-            if os.name == 'nt':
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.dirNm, shell=False, startupinfo=startupinfo)
-            else:
-                p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.dirNm, shell=False)
+            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.dirNm, shell=False)
             res, err = p.communicate()
             print_debug("phpfmt (oracle): "+res.decode('utf-8'))
             print_debug("phpfmt (oracle) err: "+err.decode('utf-8'))
@@ -971,12 +886,7 @@ class PHPFmtComplete(sublime_plugin.EventListener):
         cmdOracle.append("autocomplete")
         cmdOracle.append(prefix)
         print_debug(cmdOracle)
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
+        p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
         res, err = p.communicate()
         print_debug("phpfmt (autocomplete) err: "+err.decode('utf-8'))
 
@@ -1029,12 +939,7 @@ if version == 3:
 
 #     print_debug("Selfupdate")
 #     cmd_update = [php_bin, formatter_path, '--selfupdate']
-#     if os.name == 'nt':
-#         startupinfo = subprocess.STARTUPINFO()
-#         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-#         p = subprocess.Popen(cmd_update, shell=False, startupinfo=startupinfo)
-#     else:
-#         p = subprocess.Popen(cmd_update, shell=False)
+#     p = subprocess.Popen(cmd_update, shell=False)
 
 # sublime.set_timeout(selfupdate, 3000)
 
