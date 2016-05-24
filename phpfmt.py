@@ -7,6 +7,8 @@ import sublime_plugin
 import subprocess
 import time
 import sys
+import json
+import urllib.request
 from os.path import dirname, realpath
 
 dist_dir = os.path.dirname(os.path.abspath(__file__))
@@ -932,17 +934,23 @@ if version == 3:
     sublime.save_settings('phpfmt.sublime-settings')
 
 
-# def selfupdate():
-#     s = sublime.load_settings('phpfmt.sublime-settings')
-#     php_bin = s.get("php_bin", "php")
-#     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
+def selfupdate():
+    s = sublime.load_settings('phpfmt.sublime-settings')
+    php_bin = s.get("php_bin", "php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
-#     print_debug("Selfupdate")
-#     cmd_update = [php_bin, formatter_path, '--selfupdate']
-#     p = subprocess.Popen(cmd_update, shell=False)
+    channel = s.get("engine_channel", "lts")
+    version = s.get("engine_version", "")
 
-# sublime.set_timeout(selfupdate, 3000)
+    if version == "":
+        releaseJSON = urllib.request.urlopen("https://raw.githubusercontent.com/phpfmt/releases/master/releases.json").read()
+        releases = json.loads(releaseJSON.decode('utf-8'))
+        version = releases[channel]
 
+    downloadURL = "https://github.com/phpfmt/releases/raw/master/releases/"+channel+"/"+version+"/fmt.phar"
+    urllib.request.urlretrieve (downloadURL, formatter_path)
+
+sublime.set_timeout(selfupdate, 3000)
 
 def _ct_poller():
     s = sublime.load_settings('phpfmt.sublime-settings')
