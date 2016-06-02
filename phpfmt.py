@@ -950,7 +950,7 @@ def selfupdate():
     downloadURL = "https://github.com/phpfmt/releases/raw/master/releases/"+channel+"/"+version+"/fmt.phar"
     urllib.request.urlretrieve (downloadURL, formatter_path)
 
-sublime.set_timeout(selfupdate, 3000)
+sublime.set_timeout_async(selfupdate, 3000)
 
 def _ct_poller():
     s = sublime.load_settings('phpfmt.sublime-settings')
