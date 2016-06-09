@@ -106,14 +106,10 @@ $d = new D();
 </tr>
 </table>
 
-### Troubleshooting
-- Be sure you can run PHP from the command line.
-- If you need support, please open an issue at [fmt issues](https://github.com/phpfmt/fmt/issues)
-
 ### The Most FAQ
 
 ***I want to use sublime-phpfmt, but it needs PHP 7.0 or newer and on my production
-server I have PHP 5.5 or older. What should I do?***
+server I have PHP 5.6 or older. What should I do?***
 
 Consider installing a standalone PHP 7.0 in a separate directory and have it *not*
 configured in the environment. Within the plugin, ensure `php_bin` parameter is pointed to this standalone installation.
