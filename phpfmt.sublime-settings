@@ -1,6 +1,7 @@
 {
 "version": 4,
-"engine_channel": "lts",
+"engine": "php-cs-fixer",
+"options": ["fix","-n"],
 // "php_bin":"/usr/local/bin/php",
 // "format_on_save":true,
 "option": "value"

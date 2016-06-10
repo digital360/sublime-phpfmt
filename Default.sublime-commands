@@ -3,10 +3,7 @@
     {"caption": "phpfmt: indentation with spaces", "command": "indent_with_spaces"},
     {"caption": "phpfmt: toggle additional transformations", "command": "toggle_pass_menu" },
     {"caption": "phpfmt: toggle excluded transformations", "command": "toggle_exclude_menu" },
-    {"caption": "phpfmt: toggle skip execution when .php.tools.ini is missing", "command": "toggle", "args": {"option":"skip_if_ini_missing"}},
     {"caption": "phpfmt: toggle format on save", "command": "toggle", "args": {"option":"format_on_save"}},
-    {"caption": "phpfmt: generate PHPDoc block", "command": "generate_phpdoc"},
-    {"caption": "phpfmt: look for .php.tools.ini", "command": "toggle", "args": {"option":"readini"}},
     {"caption": "phpfmt: reorganize content of class", "command": "order_method"},
     {"caption": "phpfmt: troubleshoot information", "command": "debug_env"},
     {"caption": "phpfmt: update PHP binary path", "command": "update_php_bin"}

@@ -31,34 +31,48 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
-
-
-    additional_extensions = getSetting( view, s, "additional_extensions", [])
-    autoimport = getSetting( view, s, "autoimport", True)
-    debug = getSetting( view, s, "debug", False)
-    enable_auto_align = getSetting( view, s, "enable_auto_align", False)
-    ignore_list = getSetting( view, s, "ignore_list", "")
-    indent_with_space = getSetting( view, s, "indent_with_space", False)
-    psr1 = getSetting( view, s, "psr1", False)
-    psr1_naming = getSetting( view, s, "psr1_naming", psr1)
-    psr2 = getSetting( view, s, "psr2", False)
-    smart_linebreak_after_curly = getSetting( view, s, "smart_linebreak_after_curly", True)
-    skip_if_ini_missing = getSetting( view, s, "skip_if_ini_missing", False)
-    visibility_order = getSetting( view, s, "visibility_order", False)
-    yoda = getSetting( view, s, "yoda", False)
-    readini = getSetting( view, s, "readini", False)
-
-    passes = getSetting( view, s, "passes", [])
-    excludes = getSetting( view, s, "excludes", [])
-
-    php_bin = getSetting( view, s, "php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
-
-    config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
+    additional_extensions = s.get("additional_extensions", [])
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
     ext = os.path.splitext(uri)[1][1:]
+    if force is False and "php" != ext and not ext in additional_extensions:
+        print_debug("phpfmt: not a PHP file")
+        return False
+
+    php_bin = getSetting( view, s, "php_bin", "php")
+    engine = getSetting(view, s, "engine", "fmt.phar")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", engine)
+
+    if not os.path.isfile(formatter_path):
+        sublime.message_dialog("engine file is missing: "+formatter_path)
+        return
+
+    if engine != "fmt.phar":
+        def localFmt():
+            options = getSetting(view, s, "options", [])
+            cmd_fmt = [php_bin,formatter_path]+options+[uri]
+            print_debug(cmd_fmt)
+            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+            res, err = p.communicate()
+
+            print_debug("p:\n", p.returncode)
+            print_debug("out:\n", res.decode('utf-8'))
+            print_debug("err:\n", err.decode('utf-8'))
+            sublime.set_timeout(revert_active_window, 2000)
+
+        sublime.set_timeout(localFmt, 100)
+        return False
+
+
+    indent_with_space = getSetting( view, s, "indent_with_space", False)
+    debug = getSetting( view, s, "debug", False)
+
+    passes = getSetting( view, s, "passes", [])
+    excludes = getSetting( view, s, "excludes", [])
+
+
+    config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
     if force is False and "php" != ext and not ext in additional_extensions:
         print_debug("phpfmt: not a PHP file")
@@ -76,44 +90,6 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     if not os.path.isfile(php_bin) and not php_bin == "php":
         print_debug("Can't find PHP binary file at "+php_bin)
         sublime.error_message("Can't find PHP binary file at "+php_bin)
-
-    # Look for oracle.sqlite
-    if dirnm != "":
-        oracleDirNm = dirnm
-        while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
-            if os.path.isfile(oracleFname):
-                break
-            origOracleDirNm = oracleDirNm
-            oracleDirNm = os.path.dirname(oracleDirNm)
-            if origOracleDirNm == oracleDirNm:
-                break
-
-        if not os.path.isfile(oracleFname):
-            print_debug("phpfmt (oracle file): not found")
-            oracleFname = None
-        else:
-            print_debug("phpfmt (oracle file): "+oracleFname)
-
-        if readini:
-            iniDirNm = dirnm
-            while iniDirNm != "/":
-                iniFname = iniDirNm+os.path.sep+".php.tools.ini"
-                if os.path.isfile(iniFname):
-                    break
-                originiDirNm = iniDirNm
-                iniDirNm = os.path.dirname(iniDirNm)
-                if originiDirNm == iniDirNm:
-                    break
-
-            if os.path.isfile(iniFname):
-                print_debug("phpfmt (ini file): "+iniFname)
-                config_file = iniFname
-            elif skip_if_ini_missing:
-                print_debug("phpfmt (ini file): not found - skipping")
-                return False
-    else:
-        oracleFname = None
 
     cmd_ver = [php_bin, '-v'];
     p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
@@ -156,38 +132,10 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         cmd_fmt.append(formatter_path)
         cmd_fmt.append("--config="+config_file)
 
-        if psr1:
-            cmd_fmt.append("--psr1")
-
-        if psr1_naming:
-            cmd_fmt.append("--psr1-naming")
-
-        if psr2:
-            cmd_fmt.append("--psr2")
-
         if indent_with_space is True:
             cmd_fmt.append("--indent_with_space")
         elif indent_with_space > 0:
             cmd_fmt.append("--indent_with_space="+str(indent_with_space))
-
-        if enable_auto_align:
-            cmd_fmt.append("--enable_auto_align")
-
-        if visibility_order:
-            cmd_fmt.append("--visibility_order")
-
-        if smart_linebreak_after_curly:
-            cmd_fmt.append("--smart_linebreak_after_curly")
-
-        if yoda:
-            cmd_fmt.append("--yoda")
-
-        if sgter is not None:
-            cmd_fmt.append("--setters_and_getters="+sgter)
-            cmd_fmt.append("--constructor="+sgter)
-
-        if autoimport is True and oracleFname is not None:
-            cmd_fmt.append("--oracleDB="+oracleFname)
 
         if len(passes) > 0:
             cmd_fmt.append("--passes="+','.join(passes))
@@ -197,9 +145,6 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
 
         if debug:
             cmd_fmt.append("-v")
-
-        if sgter is None:
-            cmd_fmt.append("-o=-")
 
         if src is None:
             cmd_fmt.append(uri)
@@ -224,115 +169,19 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         if p.returncode != 0:
             return ''
 
-        if sgter is not None:
-            sublime.set_timeout(revert_active_window, 50)
-
         return res.decode('utf-8')
     else:
         sublime.status_message("phpfmt: format failed - syntax errors found")
-        print_debug("lint error: ", lint_out)
-
-
-def dogeneratephpdoc(eself, eview):
-    self = eself
-    view = eview
-    s = sublime.load_settings('phpfmt.sublime-settings')
-
-    additional_extensions = s.get("additional_extensions", [])
-    autoimport = s.get("autoimport", True)
-    debug = s.get("debug", False)
-    enable_auto_align = s.get("enable_auto_align", False)
-    ignore_list = s.get("ignore_list", "")
-    indent_with_space = s.get("indent_with_space", False)
-    psr1 = s.get("psr1", False)
-    psr1_naming = s.get("psr1_naming", psr1)
-    psr2 = s.get("psr2", False)
-    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
-    visibility_order = s.get("visibility_order", False)
-    yoda = s.get("yoda", False)
-
-    passes = s.get("passes", [])
-
-    php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
-
-    config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
-
-    uri = view.file_name()
-    dirnm, sfn = os.path.split(uri)
-    ext = os.path.splitext(uri)[1][1:]
-
-    if "php" != ext and not ext in additional_extensions:
-        print_debug("phpfmt: not a PHP file")
-        sublime.status_message("phpfmt: not a PHP file")
-        return False
-
-    if not os.path.isfile(php_bin) and not php_bin == "php":
-        print_debug("Can't find PHP binary file at "+php_bin)
-        sublime.error_message("Can't find PHP binary file at "+php_bin)
-
-    print_debug("phpfmt:", uri)
-    if enable_auto_align:
-        print_debug("auto align: enabled")
-    else:
-        print_debug("auto align: disabled")
-
-
-
-    cmd_lint = [php_bin,"-l",uri];
-    p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
-    lint_out, lint_err = p.communicate()
-
-    if(p.returncode==0):
-        cmd_fmt = [php_bin]
-
-        if not debug:
-            cmd_fmt.append("-ddisplay_errors=stderr")
-
-        cmd_fmt.append(formatter_path)
-        cmd_fmt.append("--config="+config_file)
-
-        if psr1:
-            cmd_fmt.append("--psr1")
-
-        if psr1_naming:
-            cmd_fmt.append("--psr1-naming")
-
-        if psr2:
-            cmd_fmt.append("--psr2")
-
-        if indent_with_space:
-            cmd_fmt.append("--indent_with_space")
-        elif indent_with_space > 0:
-            cmd_fmt.append("--indent_with_space="+str(indent_with_space))
-
-        if enable_auto_align:
-            cmd_fmt.append("--enable_auto_align")
-
-        if visibility_order:
-            cmd_fmt.append("--visibility_order")
-
-        passes.append("GeneratePHPDoc")
-        if len(passes) > 0:
-            cmd_fmt.append("--passes="+','.join(passes))
-
-        cmd_fmt.append(uri)
-
-        uri_tmp = uri + "~"
-
-        print_debug("cmd_fmt: ", cmd_fmt)
-
-        p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
-        res, err = p.communicate()
-        print_debug("err:\n", err.decode('utf-8'))
-        sublime.set_timeout(revert_active_window, 50)
-    else:
         print_debug("lint error: ", lint_out)
 
 def doreordermethod(eself, eview):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
+    engine = s.get("engine", "fmt.phar")
+    if engine != "fmt.phar":
+        print_debug("order method not supported in this engine")
+        return
 
     additional_extensions = s.get("additional_extensions", [])
     autoimport = s.get("autoimport", True)
@@ -461,17 +310,6 @@ def revert_active_window():
     sublime.active_window().active_view().run_command("revert")
     sublime.active_window().active_view().run_command("phpcs_sniff_this_file")
 
-def outputToPanel(name, eself, eedit, message):
-        eself.output_view = eself.view.window().get_output_panel(name)
-        eself.view.window().run_command("show_panel", {"panel": "output."+name})
-        eself.output_view.set_read_only(False)
-        eself.output_view.insert(eedit, eself.output_view.size(), message)
-        eself.output_view.set_read_only(True)
-
-def hidePanel(name, eself, eedit):
-        eself.output_view = eself.view.window().get_output_panel(name)
-        eself.view.window().run_command("hide_panel", {"panel": "output."+name})
-
 class phpfmt(sublime_plugin.EventListener):
     def on_pre_save(self, view):
         s = sublime.load_settings('phpfmt.sublime-settings')
@@ -507,6 +345,10 @@ class FmtNowCommand(sublime_plugin.TextCommand):
 class TogglePassMenuCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
+        engine = s.get("engine", "fmt.phar")
+        if engine != "fmt.phar":
+            return
+
         php_bin = s.get("php_bin", "php")
         formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
@@ -547,6 +389,10 @@ class TogglePassMenuCommand(sublime_plugin.TextCommand):
 class ToggleExcludeMenuCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
+        engine = s.get("engine", "fmt.phar")
+        if engine != "fmt.phar":
+            return
+
         php_bin = s.get("php_bin", "php")
         formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
@@ -587,20 +433,7 @@ class ToggleExcludeMenuCommand(sublime_plugin.TextCommand):
 class ToggleCommand(sublime_plugin.TextCommand):
     def run(self, edit, option):
         s = sublime.load_settings('phpfmt.sublime-settings')
-        options = {
-            "autocomplete":"autocomplete",
-            "autoimport":"dependency autoimport",
-            "enable_auto_align":"auto align",
-            "format_on_save":"format on save",
-            "psr1":"PSR1",
-            "psr1_naming":"PSR1 Class and Method Naming",
-            "psr2":"PSR2",
-            "readini":"look for .php.tools.ini",
-            "smart_linebreak_after_curly":"smart linebreak after curly",
-            "skip_if_ini_missing":"skip if ini file is missing",
-            "visibility_order":"visibility order",
-            "yoda":"yoda mode",
-        }
+        options = {"format_on_save":"format on save"}
         s = sublime.load_settings('phpfmt.sublime-settings')
         value = s.get(option, False)
 
@@ -630,12 +463,13 @@ class OrderMethodCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         doreordermethod(self, self.view)
 
-class GeneratePhpdocCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        dogeneratephpdoc(self, self.view)
-
 class IndentWithSpacesCommand(sublime_plugin.TextCommand):
     def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        engine = s.get("engine", "fmt.phar")
+        if engine != "fmt.phar":
+            return
+
         def setIndentWithSpace(text):
             s = sublime.load_settings('phpfmt.sublime-settings')
             v = text.strip()
@@ -676,6 +510,10 @@ if version == 3:
 
 def selfupdate():
     s = sublime.load_settings('phpfmt.sublime-settings')
+    engine = s.get("engine", "fmt.phar")
+    if engine != "fmt.phar":
+        return
+
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
