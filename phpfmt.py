@@ -461,21 +461,6 @@ def revert_active_window():
     sublime.active_window().active_view().run_command("revert")
     sublime.active_window().active_view().run_command("phpcs_sniff_this_file")
 
-def lookForOracleFile(view):
-        uri = view.file_name()
-        oracleDirNm, sfn = os.path.split(uri)
-        originalDirNm = oracleDirNm
-
-        while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
-            if os.path.isfile(oracleFname):
-                return True
-            origOracleDirNm = oracleDirNm
-            oracleDirNm = os.path.dirname(oracleDirNm)
-            if origOracleDirNm == oracleDirNm:
-                return False
-        return False
-
 def outputToPanel(name, eself, eedit, message):
         eself.output_view = eself.view.window().get_output_panel(name)
         eself.view.window().run_command("show_panel", {"panel": "output."+name})
@@ -494,97 +479,6 @@ class phpfmt(sublime_plugin.EventListener):
 
         if format_on_save:
             view.run_command('php_fmt')
-
-class AnalyseThisCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        if not lookForOracleFile(self.view):
-            sublime.active_window().active_view().run_command("build_oracle")
-            return False
-
-        lookTerm = (self.view.substr(self.view.word(self.view.sel()[0].a)))
-
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        php_bin = s.get("php_bin", "php")
-        oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
-
-        uri = self.view.file_name()
-        dirNm, sfn = os.path.split(uri)
-        ext = os.path.splitext(uri)[1][1:]
-
-        oracleDirNm = dirNm
-        while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
-            if os.path.isfile(oracleFname):
-                break
-            origOracleDirNm = oracleDirNm
-            oracleDirNm = os.path.dirname(oracleDirNm)
-            if origOracleDirNm == oracleDirNm:
-                break
-
-        cmdOracle = [php_bin]
-        cmdOracle.append(oraclePath)
-        cmdOracle.append("introspect")
-        cmdOracle.append(lookTerm)
-        print_debug(cmdOracle+'asdasd')
-        p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
-        res, err = p.communicate()
-
-        print_debug("phpfmt (introspect): "+res.decode('utf-8'))
-        print_debug("phpfmt (introspect) err: "+err.decode('utf-8'))
-
-        outputToPanel("phpfmtintrospect", self, edit, "Analysis:\n"+res.decode('utf-8'));
-
-
-lastCalltip = ""
-class CalltipCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        global lastCalltip
-        uri = self.view.file_name()
-        dirnm, sfn = os.path.split(uri)
-        ext = os.path.splitext(uri)[1][1:]
-
-        s = sublime.load_settings('phpfmt.sublime-settings')
-
-        additional_extensions = s.get("additional_extensions", [])
-        if "php" != ext and not ext in additional_extensions:
-            return False
-
-        if not lookForOracleFile(self.view):
-            return False
-
-        lookTerm = (self.view.substr(self.view.word(self.view.sel()[0].a)))
-        if lastCalltip == lookTerm:
-            return False
-
-        lastCalltip = lookTerm
-
-        php_bin = s.get("php_bin", "php")
-        oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
-
-        uri = self.view.file_name()
-        dirNm, sfn = os.path.split(uri)
-        ext = os.path.splitext(uri)[1][1:]
-
-        oracleDirNm = dirNm
-        while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
-            if os.path.isfile(oracleFname):
-                break
-            origOracleDirNm = oracleDirNm
-            oracleDirNm = os.path.dirname(oracleDirNm)
-            if origOracleDirNm == oracleDirNm:
-                break
-
-        cmdOracle = [php_bin]
-        cmdOracle.append(oraclePath)
-        cmdOracle.append("calltip")
-        cmdOracle.append(lookTerm)
-        p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
-        res, err = p.communicate()
-
-        output = res.decode('utf-8');
-
-        self.view.set_status("phpfmt", output)
 
 class DebugEnvCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -740,71 +634,6 @@ class GeneratePhpdocCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dogeneratephpdoc(self, self.view)
 
-class SgterSnakeCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        dofmt(self, self.view, 'snake')
-
-class SgterCamelCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        dofmt(self, self.view, 'camel')
-
-class SgterGoCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        dofmt(self, self.view, 'golang')
-
-class BuildOracleCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        def buildDB():
-            if self.msgFile is not None:
-                self.msgFile.window().run_command('close_file')
-            s = sublime.load_settings('phpfmt.sublime-settings')
-            php_bin = s.get("php_bin", "php")
-            oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
-            cmdOracle = [php_bin]
-            cmdOracle.append(oraclePath)
-            cmdOracle.append("flush")
-            cmdOracle.append(self.dirNm)
-            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.dirNm, shell=False)
-            res, err = p.communicate()
-            print_debug("phpfmt (oracle): "+res.decode('utf-8'))
-            print_debug("phpfmt (oracle) err: "+err.decode('utf-8'))
-            sublime.status_message("phpfmt (oracle): done")
-
-
-        #sublime.set_timeout_async(self.long_command, 0)
-        def askForDirectory(text):
-            self.dirNm = text
-            sublime.set_timeout_async(buildDB, 0)
-
-        view = self.view
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        php_bin = s.get("php_bin", "php")
-
-        uri = view.file_name()
-        oracleDirNm, sfn = os.path.split(uri)
-        originalDirNm = oracleDirNm
-
-        while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
-            if os.path.isfile(oracleFname):
-                break
-            origOracleDirNm = oracleDirNm
-            oracleDirNm = os.path.dirname(oracleDirNm)
-            if origOracleDirNm == oracleDirNm:
-                break
-
-        self.msgFile = None
-        if not os.path.isfile(oracleFname):
-            print_debug("phpfmt (oracle file): not found -- dialog")
-            self.msgFile = self.view.window().open_file(os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "message"))
-            self.msgFile.set_read_only(True)
-            self.view.window().show_input_panel('location:', originalDirNm, askForDirectory, None, None)
-        else:
-            print_debug("phpfmt (oracle file): "+oracleFname)
-            print_debug("phpfmt (oracle dir): "+oracleDirNm)
-            self.dirNm = oracleDirNm
-            sublime.set_timeout_async(buildDB, 0)
-
 class IndentWithSpacesCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         def setIndentWithSpace(text):
@@ -826,106 +655,17 @@ class IndentWithSpacesCommand(sublime_plugin.TextCommand):
         spaces = str(spaces)
         self.view.window().show_input_panel('how many spaces? (leave it empty to return to tabs)', spaces, setIndentWithSpace, None, None)
 
-class PHPFmtComplete(sublime_plugin.EventListener):
-    def on_query_completions(self, view, prefix, locations):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-
-        autocomplete = s.get("autocomplete", False)
-        if autocomplete is False:
-                return []
-
-        pos = locations[0]
-        scopes = view.scope_name(pos).split()
-        if not ('source.php.embedded.block.html' in scopes or 'source.php' in scopes):
-            return []
-
-
-        print_debug("phpfmt (autocomplete): "+prefix);
-
-        comps = []
-
-        uri = view.file_name()
-        dirNm, sfn = os.path.split(uri)
-        ext = os.path.splitext(uri)[1][1:]
-
-
-        oracleDirNm = dirNm
-        while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
-            if os.path.isfile(oracleFname):
-                break
-            origOracleDirNm = oracleDirNm
-            oracleDirNm = os.path.dirname(oracleDirNm)
-            if origOracleDirNm == oracleDirNm:
-                break
-
-
-        if not os.path.isfile(oracleFname):
-            sublime.status_message("phpfmt: autocomplete database not found")
-            return []
-
-        if prefix in "namespace":
-            ns = dirNm.replace(oracleDirNm, '').replace('/','\\')
-            if ns.startswith('\\'):
-                ns = ns[1:]
-            comps.append((
-                '%s \t %s \t %s' % ("namespace", ns, "namespace"),
-                '%s %s;\n${0}' % ("namespace", ns),
-            ))
-
-        if prefix in "class":
-            print_debug("class guess")
-            className = sfn.split(".")[0]
-            comps.append((
-                '%s \t %s \t %s' % ("class", className, "class"),
-                '%s %s {\n\t${0}\n}\n' % ("class", className),
-            ))
-
-        php_bin = s.get("php_bin", "php")
-        oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
-        cmdOracle = [php_bin]
-        cmdOracle.append(oraclePath)
-        cmdOracle.append("autocomplete")
-        cmdOracle.append(prefix)
-        print_debug(cmdOracle)
-        p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
-        res, err = p.communicate()
-        print_debug("phpfmt (autocomplete) err: "+err.decode('utf-8'))
-
-        f = res.decode('utf-8').split('\n')
-        reader = csv.reader(f, delimiter=',')
-        for row in reader:
-            if len(row) > 0:
-                if "class" == row[3]:
-                    comps.append((
-                        '%s \t %s \t %s' % (row[1], row[0], "class"),
-                        '%s(${0})' % (row[1]),
-                    ))
-                    comps.append((
-                        '%s \t %s \t %s' % (row[0], row[0], "class"),
-                        '%s(${0})' % (row[0]),
-                    ))
-                if "method" == row[3]:
-                    comps.append((
-                        '%s \t %s \t %s' % (row[1], row[2], "method"),
-                        '%s' % (row[0].replace('$','\$')),
-                    ))
-
-        return comps
-
 s = sublime.load_settings('phpfmt.sublime-settings')
 version = s.get('version', 1)
 s.set('version', version)
 sublime.save_settings('phpfmt.sublime-settings')
 
 if version == 2:
-    # Convert to version 3
     print_debug("Convert to version 3")
     s.set('version', 3)
     sublime.save_settings('phpfmt.sublime-settings')
 
 if version == 3:
-    # Convert to version 3
     print_debug("Convert to version 4")
     s.set('version', 4)
     passes = s.get('passes', [])
@@ -951,18 +691,6 @@ def selfupdate():
     urllib.request.urlretrieve (downloadURL, formatter_path)
 
 sublime.set_timeout_async(selfupdate, 3000)
-
-def _ct_poller():
-    s = sublime.load_settings('phpfmt.sublime-settings')
-    if s.get("calltip", False):
-        try:
-            view = sublime.active_window().active_view()
-            view.run_command('calltip')
-        except Exception:
-            pass
-        sublime.set_timeout(_ct_poller, 5000)
-
-_ct_poller()
 
 
 class PhpFmtCommand(sublime_plugin.TextCommand):
