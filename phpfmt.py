@@ -67,7 +67,7 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
 
     indent_with_space = getSetting( view, s, "indent_with_space", False)
     debug = getSetting( view, s, "debug", False)
-
+    ignore_list = getSetting( view, s, "ignore_list", "")
     passes = getSetting( view, s, "passes", [])
     excludes = getSetting( view, s, "excludes", [])
 
