@@ -126,9 +126,6 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         if not debug:
             cmd_fmt.append("-ddisplay_errors=stderr")
 
-        if psr1:
-            cmd_fmt.append("-dshort_open_tag=On")
-
         cmd_fmt.append(formatter_path)
         cmd_fmt.append("--config="+config_file)
 
