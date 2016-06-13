@@ -41,29 +41,11 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         return False
 
     php_bin = getSetting( view, s, "php_bin", "php")
-    engine = getSetting(view, s, "engine", "fmt.phar")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", engine)
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
     if not os.path.isfile(formatter_path):
         sublime.message_dialog("engine file is missing: "+formatter_path)
         return
-
-    if engine != "fmt.phar":
-        def localFmt():
-            options = getSetting(view, s, "options", [])
-            cmd_fmt = [php_bin,formatter_path]+options+[uri]
-            print_debug(cmd_fmt)
-            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
-            res, err = p.communicate()
-
-            print_debug("p:\n", p.returncode)
-            print_debug("out:\n", res.decode('utf-8'))
-            print_debug("err:\n", err.decode('utf-8'))
-            sublime.set_timeout(revert_active_window, 2000)
-
-        sublime.set_timeout(localFmt, 100)
-        return False
-
 
     indent_with_space = getSetting( view, s, "indent_with_space", False)
     debug = getSetting( view, s, "debug", False)
@@ -175,10 +157,6 @@ def doreordermethod(eself, eview):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
-    engine = s.get("engine", "fmt.phar")
-    if engine != "fmt.phar":
-        print_debug("order method not supported in this engine")
-        return
 
     additional_extensions = s.get("additional_extensions", [])
     autoimport = s.get("autoimport", True)
@@ -342,9 +320,6 @@ class FmtNowCommand(sublime_plugin.TextCommand):
 class TogglePassMenuCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
-        engine = s.get("engine", "fmt.phar")
-        if engine != "fmt.phar":
-            return
 
         php_bin = s.get("php_bin", "php")
         formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -386,9 +361,6 @@ class TogglePassMenuCommand(sublime_plugin.TextCommand):
 class ToggleExcludeMenuCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
-        engine = s.get("engine", "fmt.phar")
-        if engine != "fmt.phar":
-            return
 
         php_bin = s.get("php_bin", "php")
         formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -463,9 +435,6 @@ class OrderMethodCommand(sublime_plugin.TextCommand):
 class IndentWithSpacesCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
-        engine = s.get("engine", "fmt.phar")
-        if engine != "fmt.phar":
-            return
 
         def setIndentWithSpace(text):
             s = sublime.load_settings('phpfmt.sublime-settings')
@@ -507,14 +476,11 @@ if version == 3:
 
 def selfupdate():
     s = sublime.load_settings('phpfmt.sublime-settings')
-    engine = s.get("engine", "fmt.phar")
-    if engine != "fmt.phar":
-        return
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
-    channel = s.get("engine_channel", "lts")
+    channel = s.get("engine_channel", "alpha")
     version = s.get("engine_version", "")
 
     if version == "":
