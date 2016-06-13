@@ -483,6 +483,9 @@ def selfupdate():
     channel = s.get("engine_channel", "alpha")
     version = s.get("engine_version", "")
 
+    if channel == "alpha":
+        sublime.message_dialog("fmt.phar is a commercial product.\nAlthough fmt.phar alpha is widely available, you are restricted to use for strictly personal and educational purposes.\nConsider buying a commercial license at: https://github.com/phpfmt/issues/issues/17")
+
     if version == "":
         releaseJSON = urllib.request.urlopen("https://raw.githubusercontent.com/phpfmt/releases/master/releases.json").read()
         releases = json.loads(releaseJSON.decode('utf-8'))
