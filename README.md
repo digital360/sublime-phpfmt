@@ -6,7 +6,7 @@
 
 #### Requirements
 - **You must have a running copy of PHP on the machine you are running Sublime Text**
-- **You must have a copy of phpfmt or php-cs-fixer on the machine you are running Sublime Text - make sure you place them in the plugin's directory.**
+- **You must have a copy of phpfmt on the machine you are running Sublime Text - make sure you place them in the plugin's directory.**
 
 Plugin runs with PHP 7.0 or newer installed in the machine running the plugin.
 
